@@ -12,7 +12,8 @@ from .model_factory import ModelFactory
 from .db_helpers import SelectQuery, TableJoin, PagedResult, OrderClause, OrderExpression, WhereExpression, WhereAll
 
 class Job:
-    __dbfields = ["user_id","name","error_message","status_id","creation_date","modified_date", "is_active"]
+    __dbfields = ["user_id", "name", "description", "error_message", "status_id",
+        "creation_date", "modified_date", "is_active"]
     __extfields = ["status", "role"]
 
     def __init__(self, job_id, meta=None, config=None):
@@ -125,7 +126,7 @@ class Job:
         sql = """
             SELECT
               bin_to_uuid(jobs.id) AS id,
-              jobs.name AS name, jobs.user_id as user_id,
+              jobs.name AS name, jobs.description as description, jobs.user_id as user_id,
               jobs.status_id as status_id, statuses.name AS status,
               jobs.error_message AS error_message,
               DATE_FORMAT(jobs.creation_date, '%%Y-%%m-%%d %%H:%%i:%%s') AS creation_date,
@@ -248,6 +249,7 @@ class Job:
     def __list_by_sql_where_query(db, where=None, query=None):
         cols = OrderedDict([("id", "bin_to_uuid(jobs.id)"),
             ("name", "jobs.name"),
+            ("description", "jobs.description"),
             ("status", "statuses.name"),
             ("geno_id", "bin_to_uuid(jobs.geno_id)"),
             ("pheno_id", "bin_to_uuid(jobs.pheno_id)"),
@@ -297,10 +299,10 @@ class Job:
         db = sql_pool.get_conn()
         cur = db.cursor()
         cur.execute("""
-            INSERT INTO jobs (id, name, user_id, geno_id, pheno_id, param_hash, status_id)
+            INSERT INTO jobs (id, name, description, user_id, geno_id, pheno_id, param_hash, status_id)
             VALUES (uuid_to_bin(%s), %s, %s, uuid_to_bin(%s), uuid_to_bin(%s), %s,
             (SELECT id FROM statuses WHERE name = 'queued'))
-            """, (job_id, values["name"], values["user_id"], values["genotype"],
+            """, (job_id, values["name"], values["description"], values["user_id"], values["genotype"],
             values["phenotype"], values["param_hash"]))
         cur.execute("""
             INSERT INTO job_users(job_id, user_id, created_by, role_id)
@@ -338,15 +340,15 @@ class Job:
 
     @staticmethod
     def update(job_id, new_values):
-        updateable_fields = ["name"]
+        updateable_fields = ["name", "description"]
         fields = list(new_values.keys()) 
-        values = list(new_values.values())
+        values = [None if x=="" else x for x in new_values.values()]
         bad_fields = [x for x in fields if x not in updateable_fields]
         if len(bad_fields)>0:
             raise Exception("Invalid update field: {}".format(", ".join(bad_fields)))
         sql = "UPDATE jobs SET "+ \
             ", ".join(("{}=%s".format(k) for k in fields)) + \
-            "WHERE id = uuid_to_bin(%s)"
+            " WHERE id = uuid_to_bin(%s)"
         db = sql_pool.get_conn()
         cur = db.cursor()
         cur.execute(sql, values + [job_id])

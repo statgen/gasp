@@ -148,6 +148,7 @@ def create_new_job():
     job_desc["genotype"] = genotype_id
     job_desc["phenotype"] = phenotype_id
     job_desc["name"] = form_data["job_name"]
+    job_desc["description"] = form_data.get("description", default=None)
     job_desc["response"] =  form_data["response"] 
     if form_data.get("response_invnorm", False):
         job_desc["response_invnorm"] = True
@@ -241,7 +242,8 @@ def retire_job(job_id, job=None):
 @check_edit_job
 def update_job(job_id, job=None):
     try:
-        Job.update(job_id, request.values)
+        values = request.values.to_dict(flat=True)
+        Job.update(job_id, values)
         return ApiResult({"updated": True})
     except Exception as e:
         raise ApiException("COULD NOT UPDATE JOB", details=str(e))
@@ -577,7 +579,8 @@ def get_pheno(pheno_id, pheno=None):
 @check_edit_pheno
 def update_pheno(pheno_id, pheno=None):
     try:
-        Phenotype.update(pheno_id, request.values)
+        values = request.values.to_dict(flat=True)
+        Phenotype.update(pheno_id, values)
         return ApiResult({"updated": True})
     except Exception as e:
         raise ApiException("COULD NOT UPDATE PHENO", details=str(e))

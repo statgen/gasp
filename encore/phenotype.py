@@ -8,11 +8,13 @@ from .pheno_reader import PhenoReader
 from .db_helpers import SelectQuery, TableJoin, PagedResult, OrderClause, OrderExpression, WhereExpression, WhereAll
 
 class Phenotype:
-    __dbfields = ["name","orig_file_name","md5sum","user_id","creation_date", "is_active"]
+    __dbfields = ["name", "description", "orig_file_name", "md5sum",
+        "user_id", "creation_date", "is_active"]
 
     def __init__(self, pheno_id, meta=None):
         self.pheno_id = pheno_id
         self.name = None
+        self.description = None
         self.orig_file_name = None
         self.md5sum = None
         self.user_id = None
@@ -126,6 +128,7 @@ class Phenotype:
     def __list_by_sql_where_query(db, where=None, query=None):
         cols = OrderedDict([("id", "bin_to_uuid(phenotypes.id)"),
             ("name", "phenotypes.name"),
+            ("description", "phenotypes.description"),
             ("user_email", "users.email"),
             ("user_id", "phenotypes.user_id"),
             ("orig_file_name", "phenotypes.orig_file_name"),
@@ -155,7 +158,7 @@ class Phenotype:
             raise Exception("Missing required field: id")
         updateable_fields = ["name", "user_id", "orig_file_name", "md5sum"]
         fields = list(values.keys()) 
-        values = list(values.values())
+        values = [None if x=="" else x for x in new_values.values()]
         bad_fields = [x for x in fields if x not in updateable_fields]
         if len(bad_fields)>0:
             raise Exception("Invalid field: {}".format(", ".join(bad_fields)))
@@ -169,15 +172,15 @@ class Phenotype:
 
     @staticmethod
     def update(pheno_id, new_values):
-        updateable_fields = ["name"]
+        updateable_fields = ["name", "description"]
         fields = list(new_values.keys()) 
-        values = list(new_values.values())
+        values = [None if x=="" else x for x in new_values.values()]
         bad_fields = [x for x in fields if x not in updateable_fields]
         if len(bad_fields)>0:
             raise Exception("Invalid update field: {}".format(", ".join(bad_fields)))
         sql = "UPDATE phenotypes SET "+ \
             ", ".join(("{}=%s".format(k) for k in fields)) + \
-            "WHERE id = uuid_to_bin(%s)"
+            " WHERE id = uuid_to_bin(%s)"
         db = sql_pool.get_conn()
         cur = db.cursor()
         cur.execute(sql, values + [pheno_id])

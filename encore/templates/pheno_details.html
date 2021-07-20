@@ -56,6 +56,7 @@
 		.pheno-actions button {display: block; padding: 1px 8px; margin: 3px auto; width: 8em;}
 		.col-right {text-align: right}
 		.error-info { padding: 20px; margin: 20px auto; }
+		.no-value {color: #c4c4c4; font-style: italic }
 	</style>
 
 {% endblock %}
@@ -84,6 +85,9 @@
 			{% endif %}
 			<table id="pheno_details_table">
 				{% if pheno.meta.records %}
+					<th>Description</th>
+					<td><span class="pheno-desc">{{ pheno.description }}</span></td>
+				</tr>
 				<tr>
 					<th>Records</th>
 					<td class="format-int">{{ pheno.meta.records }}</td>
@@ -174,9 +178,13 @@
 					</div>
 					<div class="modal-body">
 						<form class="form-horizonal">
-						<div class="form-group">
+						<div class="form-group row">
 							<label class="col-sm-2 control-label" for="pheno_name">Name</label>
 							<div class="col-sm-10"><input type="text" class="form-control" id="pheno_name"/></div>
+						</div>
+						<div class="form-group row">
+							<label class="col-sm-2 control-label" for="message">Description</label>
+							<div class="col-sm-10"><textarea type="text" class="form-control" id="pheno_desc" rows="5"></textarea></div>
 						</div>
 						&nbsp;
 						</form>

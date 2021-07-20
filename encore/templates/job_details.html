@@ -56,6 +56,7 @@
 		.label-edit:hover {color: black; backgroud-color: #c4c4c4; }
 		a.edit-job-modal {text-decoration: none; color:inherit; cursor: pointer}
 		.job-actions button {display: block; padding: 1px 8px; margin: 3px auto; width: 8em;}
+		.no-value {color: #c4c4c4; font-style: italic }
 	</style>
 
 {% endblock %}
@@ -64,6 +65,10 @@
 		<tr>
 			<th>Job Name</th>
 			<td>{{ job.name }}</td>
+		</tr>
+		<tr>
+			<th>Description</th>
+			<td><span class="job-desc">{{ job.description }}</span></td>
 		</tr>
 		{% if job.details %}
 		{% if job.details.response %}
@@ -237,9 +242,13 @@
 					</div>
 					<div class="modal-body">
 						<form class="form-horizonal">
-						<div class="form-group">
+						<div class="form-group row">
 							<label class="col-sm-2 control-label" for="job_name">Name</label>
 							<div class="col-sm-10"><input type="text" class="form-control" id="job_name"/></div>
+						</div>
+						<div class="form-group row">
+							<label class="col-sm-2 control-label" for="message">Description</label>
+							<div class="col-sm-10"><textarea type="text" class="form-control" id="job_desc" rows="5"></textarea></div>
 						</div>
 						&nbsp;
 						</form>

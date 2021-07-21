@@ -560,37 +560,21 @@ function jumpToLocusZoom(job_id, chr, pos, variant) {
 }
 
 function init_editform(job_id, job_api_url) {
+    var edit_form = new FormHelper("#editModalBox", "Job");
     var titleBox = new EditableElement("#job_name_title", true);
     var descBox = new EditableElement(".job-desc");
-    $("#editModal").find("form").on("keyup keypress", function(e) {
-        var keyCode = e.keyCode || e.which;
-        if (keyCode === 13) { 
-            e.preventDefault();
-            return false;
-        }
-    });
+
     $("a.edit-job-modal").click(function(evt) {
         evt.preventDefault();
-        $.getJSON(job_api_url).then(function(resp) {
-            $("#editModal").find("#job_name").val(resp.name);
-            $("#editModal").find("#job_desc").val(resp.description);
-            $("#editModal").on("shown.bs.modal", function() {
-                $("#editModal").find("#job_name").focus();
-            });
-            $("#editModal").modal();
-        });
-    });
-    $("button.edit-job-save").click(function(evt) {
-        evt.preventDefault();
-        var new_name = $("#editModal").find("#job_name").val();
-        var new_desc = $("#editModal").find("#job_desc").val();
-        $.post(job_api_url, {"name": new_name, "description": new_desc}).done( function() {
-            titleBox.setText(new_name)
-            descBox.setText(new_desc)
-            $("#editModal").modal("hide");
-        }).fail(function() {
-            alert("Update failed");
-        });
+        $.get(job_api_url).done(function(current_data) {
+            var form_values = {name: current_data.name, description: current_data.description}
+            edit_form.show_update_form(form_values, (new_values) => {
+                return postFormData(job_api_url, new_values).then( () => {
+                    titleBox.setText(new_values.name)
+                    descBox.setText(new_values.description)
+                });
+            })
+        })
     });
 }
 

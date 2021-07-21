@@ -5,6 +5,7 @@
 	<script type="text/javascript" src="{{ url_for('static', filename='js/dt_api_interface.js') }}"></script>
 
 	<script type="text/javascript" src="{{ url_for('static', filename='js/pheno_details.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/form_helper.js') }}"></script>
 
 	<script type="text/javascript">
 		pheno_id = "{{ pheno.pheno_id }}"
@@ -86,7 +87,7 @@
 			<table id="pheno_details_table">
 				{% if pheno.meta.records %}
 					<th>Description</th>
-					<td><span class="pheno-desc">{{ pheno.description }}</span></td>
+					<td><span class="pheno-desc">{{ pheno.description if pheno.description }}</span></td>
 				</tr>
 				<tr>
 					<th>Records</th>
@@ -169,7 +170,7 @@
         </div>
 
 		{% if pheno.can_edit %}
-		<div class="modal fade" id="editModal" role="dialog">
+		<div class="modal fade" id="editModalBox" role="dialog">
 			<div class="modal-dialog">
 				<div class="modal-content">
 					<div class="modal-header">
@@ -177,21 +178,22 @@
 						<h4 class="modal-title">Edit Phenotype Details</h4>
 					</div>
 					<div class="modal-body">
+						<div class="alert alert-danger error-message" role="alert" style="display: none"> </div>
 						<form class="form-horizonal">
 						<div class="form-group row">
 							<label class="col-sm-2 control-label" for="pheno_name">Name</label>
-							<div class="col-sm-10"><input type="text" class="form-control" id="pheno_name"/></div>
+							<div class="col-sm-10"><input type="text" class="form-control" data-bind="name" data-focus="me" id="pheno_name"/></div>
 						</div>
 						<div class="form-group row">
 							<label class="col-sm-2 control-label" for="message">Description</label>
-							<div class="col-sm-10"><textarea type="text" class="form-control" id="pheno_desc" rows="5"></textarea></div>
+							<div class="col-sm-10"><textarea type="text" class="form-control" data-bind="description" id="pheno_desc" rows="5"></textarea></div>
 						</div>
 						&nbsp;
 						</form>
 					</div>
 					<div class="modal-footer">
 						<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-						<button type="button" class="btn btn-success edit-pheno-save" >Save</button>
+						<button type="button" class="btn btn-success modal-action" >Save</button>
 					</div>
 				</div>
 			</div>

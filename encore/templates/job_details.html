@@ -14,6 +14,7 @@
 	
     <script type="text/javascript" src="{{ url_for('static', filename='js/plot.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/job_details.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/form_helper.js') }}"></script>
 	<script type="text/javascript">
 		job_id = "{{ job.job_id }}"
 		job_status = "{{ job.status }}"
@@ -68,7 +69,7 @@
 		</tr>
 		<tr>
 			<th>Description</th>
-			<td><span class="job-desc">{{ job.description }}</span></td>
+			<td><span class="job-desc">{{ job.description if job.description}}</span></td>
 		</tr>
 		{% if job.details %}
 		{% if job.details.response %}
@@ -233,7 +234,7 @@
         {% endif %}
 
 		{% if job.can_edit %}
-		<div class="modal fade" id="editModal" role="dialog">
+		<div class="modal fade" id="editModalBox" role="dialog">
 			<div class="modal-dialog">
 				<div class="modal-content">
 					<div class="modal-header">
@@ -241,21 +242,22 @@
 						<h4 class="modal-title">Edit Job Details</h4>
 					</div>
 					<div class="modal-body">
+						<div class="alert alert-danger error-message" role="alert" style="display: none"> </div>
 						<form class="form-horizonal">
 						<div class="form-group row">
 							<label class="col-sm-2 control-label" for="job_name">Name</label>
-							<div class="col-sm-10"><input type="text" class="form-control" id="job_name"/></div>
+							<div class="col-sm-10"><input type="text" class="form-control" id="job_name" data-bind="name" data-focus="me"/></div>
 						</div>
 						<div class="form-group row">
 							<label class="col-sm-2 control-label" for="message">Description</label>
-							<div class="col-sm-10"><textarea type="text" class="form-control" id="job_desc" rows="5"></textarea></div>
+							<div class="col-sm-10"><textarea type="text" class="form-control" id="job_desc" data-bind="description" rows="5"></textarea></div>
 						</div>
 						&nbsp;
 						</form>
 					</div>
 					<div class="modal-footer">
 						<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-						<button type="button" class="btn btn-success edit-job-save" >Save</button>
+						<button type="button" class="btn btn-success modal-action" >Save</button>
 					</div>
 				</div>
 			</div>

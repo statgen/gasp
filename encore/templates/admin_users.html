@@ -6,136 +6,18 @@
 	<link rel="stylesheet" href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css"/>
 	<script type="text/javascript" src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
 	<script type="text/javascript" src="{{ url_for('static', filename='js/dt_api_interface.js') }}"></script>
+	<script type="text/javascript" src="{{ url_for('static', filename='js/form_helper.js') }}"></script>
 
 <script type="text/javascript">
 		var user_form;
-		function FormTemplate(template_id, dest_id) {
-			var modal = document.getElementById(dest_id);
-			var template = document.getElementById(template_id);
-			var clone = template.content.cloneNode(true);
-			var resolve = null;
-			var reject = null;
-			var inputs = {
-				"email": clone.querySelector("#email"),
-				"full_name": clone.querySelector("#full_name"),
-				"affiliation": clone.querySelector("#affiliation"),
-				"can_analyze": clone.querySelector("#can_analyze"),
-				"is_active": clone.querySelector("#is_active")
-			}
-			var texts = {
-				"title": clone.querySelector(".modal-title"),
-				"action": clone.querySelector(".form-action-go"),
-				"error_message": clone.querySelector(".error-message")
-			}
-			modal.appendChild(clone);
-			$(modal).find("form").on("keyup keypress", function(e) {
-				var keyCode = e.keyCode || e.which;
-				if (keyCode === 13) {
-					e.preventDefault();
-					return false;
-				}
-			});
-			$(modal).on("shown.bs.modal", () => {
-				this.remove_error();
-				$(modal).find("#email").focus();
-			});
-
-			$(modal).find(".form-action-go").on("click", (evt) => {
-				if(resolve) {
-					if (actionCallBack) {
-						this.remove_error();
-						var result = actionCallBack( this.get_values() );
-						result
-							.then( (value) => {
-								resolve({done: true, value});
-								resolve = null;
-								$(modal).modal('hide');
-							})
-							.catch( (err) => {
-								this.show_error(err)
-							})
-					} else {
-						resolve({done: true, noaction: true});
-					}
-				}
-			})
-			$(modal).on("hidden.bs.modal", () => {
-				if(resolve) {
-					resolve({canceled: true});
-					resolve = null;
-				}
-				this.remove_error();
-			});
-
-			this.set_values = function(vals) {
-				inputs.email.value = vals.email || '';
-				inputs.full_name.value = vals.full_name || '';
-				inputs.affiliation.value = vals.affiliation || '';
-				inputs.can_analyze.checked = vals.can_analyze || false;
-				inputs.is_active.checked = vals.is_active || false;
-			}
-			this.get_values = function() {
-				return {
-					"email": inputs.email.value,
-					"full_name": inputs.full_name.value,
-					"affiliation": inputs.affiliation.value,
-					"can_analyze": +(inputs.can_analyze.checked), //numeric
-					"is_active": +(inputs.is_active.checked) //numeric
-				}
-			}
-			this.set_text = function(vals) {
-				texts.title.innerText = vals.title || "User"
-				texts.action.innerText = vals.action || "Go"
-			}
-			this.return_promise = function(cb) {
-				actionCallBack = cb;
-				return new Promise((res, rej) => {
-					resolve = res
-				});
-			}
-
-			this.remove_error = function() {
-				texts.error_message.style.display = "none";
-			}
-			this.show_error = function(err) {
-				texts.error_message.innerText = err.details || err;
-				texts.error_message.style.display = "block";
-			}
-
-			this.show_add_form = function(vals, cb) {
-				this.set_text({"title": "New User", "action": "Add"});
-				this.set_values(vals);
-				$(modal).modal();
-				return this.return_promise(cb)
-			}
-			this.show_update_form = function(vals, cb) {
-				this.set_text({"title": "Update User", "action": "Update"});
-				this.set_values(vals || {});
-				$(modal).modal();
-				return this.return_promise(cb)
-			}
-		}
-
-		function postFormData(url, data) {
-			var body = new FormData()
-			for(var key of Object.keys(data)) {
-				body.append(key, data[key])
-			}
-			return fetch(url, {method: 'post', body: body}).then( (resp) => {
-				if (!resp.ok) {
-					return resp.json()
-						.then( (errresp) => ( Promise.reject(errresp) ))
-				}
-				return resp.json();
-			})
-		}
 		function show_edit_form(id, evt) {
 			if (evt) evt.preventDefault();
 			var get_url = "{{url_for("api.get_api_user", user_id="XXX")}}";
 			get_url = get_url.replace("XXX", id);
 			if (user_form) {
-				$.get(get_url).done(function(data) {
-					user_form.show_update_form(data, (data) => {
+				$.get(get_url).done(function(current_data) {
+					delete current_data.id;
+					user_form.show_update_form(current_data, (data) => {
 						var update_url = "{{ url_for("api.update_user", user_id="XXX") }}";
 						update_url = update_url.replace("XXX", id);
 						return postFormData(update_url, data).then( function() {
@@ -193,7 +75,7 @@
 			});
 		}
 		function init_page() {
-			user_form = new FormTemplate("user_form", "modalBox");
+			user_form = new FormHelper("#modalBox", "User");
 			init_user_table();
 			init_addform();
 		}
@@ -220,9 +102,6 @@
         </div>
 
 		<div class="modal fade" id="modalBox" role="dialog">
-		</div>
-
-		<template id="user_form">
 			<div class="modal-dialog">
 				<div class="modal-content">
 					<div class="modal-header">
@@ -234,32 +113,32 @@
 						<form class="form-horizonal">
 						<div class="form-group row">
 							<label class="col-sm-2 control-label" for="email">E-mail</label>
-							<div class="col-sm-10"><input type="text" class="form-control" id="email"/></div>
+							<div class="col-sm-10"><input type="text" class="form-control" data-bind="email" data-focus="me" id="email"/></div>
 						</div>
 						<div class="form-group row">
 							<label class="col-sm-2 control-label" for="full_name">Name</label>
-							<div class="col-sm-10"><input type="text" class="form-control" id="full_name"/></div>
+							<div class="col-sm-10"><input type="text" class="form-control" data-bind="full_name" id="full_name"/></div>
 						</div>
 						<div class="form-group row">
 							<label class="col-sm-2 control-label" for="affiliation">Affiliation</label>
-							<div class="col-sm-10"><input type="text" class="form-control" id="affiliation"/></div>
+							<div class="col-sm-10"><input type="text" class="form-control" data-bind="affiliation" id="affiliation"/></div>
 						</div>
 						<div class="form-group row">
 							<label class="col-sm-2 control-label" for="can_analyze">Can Analyze</label>
-							<div class="col-sm-10"><input type="checkbox" id="can_analyze"/></div>
+							<div class="col-sm-10"><input type="checkbox" id="can_analyze" data-bind="can_analyze"/></div>
 						</div>
 						<div class="form-group row">
 							<label class="col-sm-2 control-label" for="can_analyze">Is Active</label>
-							<div class="col-sm-10"><input type="checkbox" id="is_active"/></div>
+							<div class="col-sm-10"><input type="checkbox" id="is_active" data-bind="is_active"/></div>
 						</div>
 						&nbsp;
 						</form>
 					</div>
 					<div class="modal-footer">
 						<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-						<button type="button" class="btn btn-success form-action-go">Go</button>
+						<button type="button" class="btn btn-success modal-action">Go</button>
 					</div>
 				</div>
 			</div>
-		</template>
+		</div>
 {% endblock %}
